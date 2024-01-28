@@ -39,12 +39,12 @@
     font-family: 'Open Sans', sans-serif;
   }
   
-  .selected {
+  .seat.green {
     background-color: #4caf50; /* Green background for selected seats */
     color: #fff;
   }
   
-  .submit {
+  .seat.red {
     background-color: #f44336; /* Red background for submitted seats */
     color: #fff;
   }

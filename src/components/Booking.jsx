@@ -3,7 +3,9 @@ import "./Booking.css";
 
 function Booking() {
   const movies = ["Avengers: Endgame", "Chithha", "Leo", "Animal"];
-  const [selectedSeats, setSelectedSeats] = useState([]);
+  const [selectedSeats, setSelectedSeats] = useState({});
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submittedSeats, setSubmittedSeats] = useState({});
   const [selectedMovie, setSelectedMovie] = useState("");
   const ticket_price = 200;
 
@@ -11,36 +13,48 @@ function Booking() {
   const seatsPerRow = 8;
 
   const handleSeatClick = (row, seat) => {
-  const selectedSeat = `${row}-${seat}`;
-  
-    setSelectedSeats((prevSeats) => {
-      if (prevSeats.includes(selectedSeat)) {
-        return prevSeats.filter((s) => s !== selectedSeat);
+    const selectedSeat = `${row}-${seat}`;
+
+    if (isSubmitted) {
+      return; // Don't allow changes after submission
+    }
+
+    setSelectedSeats((prevSelectedSeats) => {
+      const movieSeats = prevSelectedSeats[selectedMovie] || [];
+
+      if (movieSeats.includes(selectedSeat)) {
+        return {
+          ...prevSelectedSeats,
+          [selectedMovie]: movieSeats.filter((s) => s !== selectedSeat),
+        };
       } else {
-        return [...prevSeats, selectedSeat];
+        return {
+          ...prevSelectedSeats,
+          [selectedMovie]: [...movieSeats, selectedSeat],
+        };
       }
     });
   };
-  
 
   const handleSubmit = () => {
-    const selectedSeatsElements = document.querySelectorAll(".seat.selected");
-    selectedSeatsElements.forEach((seat) => {
-      seat.style.backgroundColor = "#f44336"; // Change the background color to red
-    });
-  
+    setSubmittedSeats((prevSubmittedSeats) => ({
+      ...prevSubmittedSeats,
+      [selectedMovie]: selectedSeats[selectedMovie] || [],
+    }));
+    setIsSubmitted(true);
   };
 
   const handleMovieChange = (e) => {
+    setIsSubmitted(false);
     const movie = e.target.value;
     setSelectedMovie(movie);
-    setSelectedSeats([]);
   };
 
   return (
     <div>
       <div className="movie-options">
-        <label htmlFor="movies">Select a Movie: </label><br />
+        <label htmlFor="movies">Select a Movie: </label>
+        <br />
         <select
           id="movies"
           name="Movies"
@@ -67,12 +81,19 @@ function Booking() {
                 {Array.from({ length: seatsPerRow }, (_, seat) => {
                   const seatNumber = seat + 1;
                   const seatId = `${row + 1}-${seatNumber}`;
-                  const isSelected = selectedSeats.includes(seatId);
+
+                  const isSelected =
+                    selectedSeats[selectedMovie]?.includes(seatId) || false;
+                  const isSeatSubmitted =
+                    isSubmitted &&
+                    submittedSeats[selectedMovie]?.includes(seatId);
 
                   return (
                     <div
                       key={seatId}
-                      className={(`seat ${isSelected ? " selected" : ""}`)}
+                      className={`seat ${isSelected ? "green" : ""} ${
+                        isSeatSubmitted ? "red" : ""
+                      }`}
                       onClick={() => handleSeatClick(row + 1, seatNumber)}
                     >
                       {seatNumber}
@@ -83,7 +104,11 @@ function Booking() {
             ))}
           </div>
 
-          <p>You have selected {selectedSeats.length } for a price of: Rs.{selectedSeats.length * ticket_price}</p>
+          <p>
+            You have selected {selectedSeats[selectedMovie]?.length || 0} for a
+            price of: Rs.
+            {selectedSeats[selectedMovie]?.length * ticket_price || 0}
+          </p>
 
           <button onClick={handleSubmit}>
             Submit
